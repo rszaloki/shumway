@@ -44,23 +44,46 @@ function defineFont(tag, dictionary) {
   var glyphIndex = { };
   var ranges = [];
 
-  var glyphs = tag.glyphs;
-  var glyphCount = glyphs.length;
+  var glyphs;
+  var glyphCount;
+  var generateAdvancement = tag['advance'] === undefined;
+  var correction = 0;
+
+  if(generateAdvancement) tag.advance = [];
 
   if (tag.codes) {
-    codes = codes.concat(tag.codes);
-    for (var i = 0, code; (code = codes[i]); ++i)
-      glyphIndex[code] = i;
+    for (var i = 0, code; i<tag.codes.length; i++) {
+      code=tag.codes[i];
+      if( code === 0 ) {
+        tag.glyphs.splice(i,1);
+        tag.offsets.splice(i,1);
+        correction--;
+      } else {
+        codes.push(code);
+      }
+    }
+  }
+
+
+  tag.glyphCount = tag.glyphs.length;
+  glyphs = tag.glyphs;
+  glyphCount = glyphs.length;
+
+  if (tag.codes) {
+    for (var i = 0, code; i<codes.length; i++) {
+      code=codes[i];
+      glyphIndex[code] = i;      
+    }
     codes.sort(function(a, b) {
       return a - b;
     });
     var i = 0;
     var code;
-    while ((code = codes[i++])) {
+    while ((code = codes[i++]) || code===0) {
       var start = code;
       var end = start;
       var indices = [i - 1];
-      while ((code = codes[i]) && end + 1 === code) {
+      while (((code = codes[i]) || code===0) && end + 1 === code) {
         ++end;
         indices.push(i);
         ++i;
@@ -79,7 +102,7 @@ function defineFont(tag, dictionary) {
     ranges.push([UAC_OFFSET, UAC_OFFSET + glyphCount - 1, indices]);
   }
 
-  var resolution = tag.resolution || 1;
+  var resolution = tag.resolution || 20;
   var ascent = Math.ceil(tag.ascent / resolution) || 1024;
   var descent = -Math.ceil(tag.descent / resolution) | 0;
   var leading = (tag.leading / resolution) | 0;
@@ -174,7 +197,7 @@ function defineFont(tag, dictionary) {
   var maxContours = 0;
   var i = 0;
   var code;
-  while ((code = codes[i++])) {
+  while ((code = codes[i++]) || code === 0) {
     var glyph = glyphs[glyphIndex[code]];
     var records = glyph.records;
     var numberOfContours = 1;
@@ -298,6 +321,10 @@ function defineFont(tag, dictionary) {
       maxContours = numberOfContours;
     if (endPoint > maxPoints)
       maxPoints = endPoint;
+
+    if(generateAdvancement) {
+      tag.advance.push((xMax - xMin) * resolution * 1.3);
+    }
   }
   loca += toString16(offset / 2);
   tables['glyf'] = glyf;
@@ -490,6 +517,7 @@ function defineFont(tag, dictionary) {
     metrics: metrics,
     bold: tag.bold === 1,
     italic: tag.italic === 1,
-    data: otf
+    data: otf,
+    indexCorrection: correction
   };
 }
