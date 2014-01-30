@@ -19,6 +19,8 @@
 
 var nextFontId = 1;
 
+var dummyGlyph = {"records":[{"type":0,"eos":false,"hasNewStyles":0,"hasLineStyle":0,"hasFillStyle1":0,"hasFillStyle0":1,"move":0,"fillStyle0":1},{"type":0,"eos":false,"hasNewStyles":0,"hasLineStyle":0,"hasFillStyle1":0,"hasFillStyle0":0,"move":1,"moveX":5680,"moveY":5030},{"type":1,"eos":false,"isStraight":1,"isGeneral":0,"isVertical":1,"deltaY":0},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":0,"controlDeltaY":-580,"anchorDeltaX":-110,"anchorDeltaY":-230},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":-110,"controlDeltaY":-230,"anchorDeltaX":-240,"anchorDeltaY":0},{"type":1,"eos":false,"isStraight":1,"isGeneral":0,"isVertical":0,"deltaX":-4160},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":-250,"controlDeltaY":0,"anchorDeltaX":-110,"anchorDeltaY":235},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":-110,"controlDeltaY":235,"anchorDeltaX":0,"anchorDeltaY":570},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":0,"controlDeltaY":560,"anchorDeltaX":110,"anchorDeltaY":230},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":110,"controlDeltaY":230,"anchorDeltaX":250,"anchorDeltaY":0},{"type":1,"eos":false,"isStraight":1,"isGeneral":0,"isVertical":0,"deltaX":4160},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":120,"controlDeltaY":0,"anchorDeltaX":85,"anchorDeltaY":-50},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":85,"controlDeltaY":-50,"anchorDeltaX":60,"anchorDeltaY":-120},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":60,"controlDeltaY":-120,"anchorDeltaX":25,"anchorDeltaY":-200},{"type":1,"eos":false,"isStraight":0,"controlDeltaX":25,"controlDeltaY":-200,"anchorDeltaX":0,"anchorDeltaY":-280},{"type":0,"eos":true,"hasNewStyles":0,"hasLineStyle":0,"hasFillStyle1":0,"hasFillStyle0":0,"move":0}]};
+
 function maxPower2(num) {
   var maxPower = 0;
   var val = num;
@@ -46,6 +48,7 @@ function defineFont(tag, dictionary) {
 
   var glyphs;
   var glyphCount;
+  var originalCode;
   var generateAdvancement = tag['advance'] === undefined;
   var correction = 0;
 
@@ -55,13 +58,20 @@ function defineFont(tag, dictionary) {
     for (var i = 0, code; i<tag.codes.length; i++) {
       code=tag.codes[i];
       if( code === 0 ) {
-        tag.glyphs.splice(i,1);
-        tag.offsets.splice(i,1);
-        correction--;
-      } else {
-        codes.push(code);
+        var prevCode = tag.codes[i-1];
+        var nextCode = tag.codes[i+1];
+
+        if(!nextCode) {
+          code = prevCode +1;
+        } else {
+          code = nextCode -1;
+        }
+
+        tag.glyphs[i] = dummyGlyph;
       }
+      codes.push(code);
     }
+    originalCode = tag.codes.concat();
   }
 
 
@@ -513,11 +523,10 @@ function defineFont(tag, dictionary) {
     id: tag.id,
     name: fontName,
     uniqueName: psName + uniqueId,
-    codes: codes,
+    codes: originalCode,
     metrics: metrics,
     bold: tag.bold === 1,
     italic: tag.italic === 1,
-    data: otf,
-    indexCorrection: correction
+    data: otf 
   };
 }
