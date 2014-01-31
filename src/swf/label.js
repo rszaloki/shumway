@@ -44,7 +44,7 @@ function defineLabel(tag, dictionary) {
       assert(font, 'undefined font', 'label');
       codes = font.codes;
       indexCorrection = font.indexCorrection;
-      cmds.push('c.font="' + record.fontHeight + 'px \'' + font.uniqueName + '\'"');
+      cmds.push('c.font="' + (record.fontHeight > 160 ? record.fontHeight/20 : record.fontHeight) + 'px \'' + font.uniqueName + '\'"');
       dependencies.push(font.id);
     }
 
@@ -70,7 +70,7 @@ function defineLabel(tag, dictionary) {
         assert(code, 'undefined glyph', 'label');
         text = code >= 32 && code != 34 && code != 92 ? fromCharCode(code) :
           '\\u' + (code + 0x10000).toString(16).substring(1);
-        cmds.push('c.fillText("' + text + '",'+ x +','+ y +')');
+        cmds.push('c.fillText("' + text + '",'+ x +','+ y +'); // '+code );
         x+= entry.advance / 20;
         fullText+=text;
       } catch(e) {
