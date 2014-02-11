@@ -19,7 +19,6 @@
 
 var nextFontId = 1;
 
-var dummyGlyph = {"records":[{"type":0,"eos":true,"hasNewStyles":0,"hasLineStyle":0,"hasFillStyle1":0,"hasFillStyle0":0,"move":0}]};
 
 function maxPower2(num) {
   var maxPower = 0;
