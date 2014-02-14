@@ -52,6 +52,43 @@ function defineFont(tag, dictionary) {
   var generateAdvancement = tag['advance'] === undefined;
   var correction = 0;
 
+  function isClockwise(nodes) {
+      var E1x = nodes[0]-nodes[2]; // P1x-P2x
+      var E1y = nodes[1]-nodes[3]; // P1y-P2y 
+      var E2x = nodes[4]-nodes[2]; // P3x-P2x 
+      var E2y = nodes[5]-nodes[3]; // P3y-P2y
+      return ((E1x * E2y - E1y * E2x) >= 0);    
+  }
+
+  function reverseSegment(segment) {
+    var newCommands = [],
+        newData = [],
+        data = segment.data,
+        commands = segment.commands,
+        dataIndex = data.length-1,
+        x,y,
+        currentCommand;
+
+    newCommands.push(1);
+
+    while( dataIndex>0 ) {
+      x = data[dataIndex-1];
+      y = data[dataIndex];
+      dataIndex -= 2;
+      newData.push(x,y);
+    }
+
+    for (var i = commands.length - 1; i >= 1; i--) {
+        newCommands.push(commands[i]);
+    };  
+
+    segment.commands = newCommands;
+    segment.data = newData;
+    segment.clockwise = !segment.clockwise;
+
+  }
+
+
   if(generateAdvancement) tag.advance = [];
 
   var maxCode = Math.max.apply(null,tag.codes) || 35;
@@ -206,9 +243,122 @@ function defineFont(tag, dictionary) {
   var maxContours = 0;
   var i = 0;
   var code;
+  var rawData = {};
   while ( code = codes[i++] ) {
     var glyph = glyphs[glyphIndex[code]];
     var records = glyph.records;
+    var x = 0;
+    var y = 0;
+
+    var myFlags = '',
+        myEndpts = '',
+        endPoint = 0,
+        segments = [],
+        segmentIndex = -1;
+
+    for(j=0; j<records.length; j++) {
+      record = records[j];
+      if (record.type) {
+        if (record.isStraight) {
+            segments[segmentIndex].commands.push(2);
+            var dx = (record.deltaX || 0) / resolution;
+            var dy = -(record.deltaY || 0) / resolution;
+            x += dx;
+            y += dy;
+            segments[segmentIndex].data.push(x,y);
+            segments[segmentIndex].nodes.push(x,y);
+        } else {
+          segments[segmentIndex].commands.push(3);
+          var cx = record.controlDeltaX / resolution;
+          var cy = -record.controlDeltaY / resolution;
+          x += cx;
+          y += cy;
+          segments[segmentIndex].data.push(x,y);
+          var dx = record.anchorDeltaX / resolution;
+          var dy = -record.anchorDeltaY / resolution;
+          x += dx;
+          y += dy;
+          segments[segmentIndex].data.push(x,y);
+          segments[segmentIndex].nodes.push(x,y);
+        }
+      } else {
+        if (record.eos)
+          break;
+        if (record.move) {
+          if(segmentIndex >= 0 ) {
+            segments[segmentIndex].clockwise = isClockwise(segments[segmentIndex].nodes);
+          }
+          segmentIndex++;
+          segments[segmentIndex] = { data:[], commands:[], nodes:[], xMin:0, xMax:0, yMin:0, yMax:0 };
+          segments[segmentIndex].commands.push(1);
+          var moveX = record.moveX / resolution;
+          var moveY = -record.moveY / resolution;
+          var dx = moveX - x;
+          var dy = moveY - y;
+          x = moveX;
+          y = moveY;
+          segments[segmentIndex].data.push(x,y);
+          segments[segmentIndex].nodes.push(x,y);
+        }
+      }
+
+      if(segmentIndex > -1 ) {
+        if(segments[segmentIndex].xMin > x) segments[segmentIndex].xMin = x;
+        if(segments[segmentIndex].yMin > y) segments[segmentIndex].yMin = y;
+        if(segments[segmentIndex].xMax < x) segments[segmentIndex].xMax = x;
+        if(segments[segmentIndex].yMax < y) segments[segmentIndex].yMax = y;        
+      }
+    }
+    if(segmentIndex >= 0 ) {
+      segments[segmentIndex].clockwise = isClockwise(segments[segmentIndex].nodes);
+    }
+
+    segments.sort(function(a,b){
+      return (b.xMax - b.xMin) * (b.yMax - b.yMin) - (a.xMax - a.xMin) * (a.yMax - a.yMin);
+    });
+/*
+    if(segments.length) {
+      var currentsegment = segments[0];
+      if( currentsegment.clockwise === false ) {
+          reverseSegment(currentsegment);
+      }
+      for(j=1; j<segments.length; j++ ) {
+          var nextsegment = segments[j];
+          if(nextsegment.commands.length>2) {
+              if( currentsegment.xMin <= nextsegment.xMin &&
+                  currentsegment.yMin <= nextsegment.yMin && 
+                  currentsegment.xMax >= nextsegment.xMax &&
+                  currentsegment.yMax >= nextsegment.yMax && 
+                  currentsegment.clockwise === nextsegment.clockwise ) {
+
+                  reverseSegment(nextsegment);
+              }
+          }
+          currentsegment = nextsegment;
+      }      
+    }
+*/
+    rawData[code] = segments;
+  }
+  var xTranslate = 0, yTranslate = 0;
+
+
+  for(i = 0; i<codes.length; i++) {
+    var code = codes[i];
+    segments = rawData[code];
+    for(j=0; j<segments.length; j++ ) {
+      if(yTranslate < segments[j].yMax ) yTranslate = segments[j].yMax;
+    }
+  }
+
+  yTranslate = Math.max(yTranslate,0);
+
+
+  i=0;
+  while ( code = codes[i++] ) {
+    var glyph = glyphs[glyphIndex[code]];
+    var records = glyph.records;
+    var segments = rawData[code];
     var numberOfContours = 1;
     var endPoint = 0;
     var endPtsOfContours = '';
@@ -221,88 +371,94 @@ function defineFont(tag, dictionary) {
     var xMax = -1024;
     var yMin = 1024;
     var yMax = -1024;
-    for (var j = 0, record; (record = records[j]); ++j) {
-      if (record.type) {
-        if (record.isStraight) {
-          if (record.isGeneral) {
-            flags += '\x01';
-            var dx = record.deltaX / resolution;
-            var dy = -record.deltaY / resolution;
-            xCoordinates += toString16(dx);
-            yCoordinates += toString16(dy);
-            x += dx;
-            y += dy;
-          } else if (record.isVertical) {
-            flags += '\x11';
-            var dy = -record.deltaY / resolution;
-            yCoordinates += toString16(dy);
-            y += dy;
-          } else {
-            flags += '\x21';
-            var dx = record.deltaX / resolution;
-            xCoordinates += toString16(dx);
-            x += dx;
-          }
-        } else {
-          flags += '\x00';
-          var cx = record.controlDeltaX / resolution;
-          var cy = -record.controlDeltaY / resolution;
-          xCoordinates += toString16(cx);
-          yCoordinates += toString16(cy);
-          flags += '\x01';
-          var dx = record.anchorDeltaX / resolution;
-          var dy = -record.anchorDeltaY / resolution;
-          xCoordinates += toString16(dx);
-          yCoordinates += toString16(dy);
-          ++endPoint;
-          x += cx + dx;
-          y += cy + dy;
-        }
 
-        if (x < xMin)
-          xMin = x;
-        if (x > xMax)
-          xMax = x;
-        if (y < yMin)
-          yMin = y;
-        if (y > yMax)
-          yMax = y;
-        ++endPoint;
-      } else {
-        if (record.eos)
-          break;
-        if (record.move) {
-          if (endPoint) {
-            ++numberOfContours;
-            endPtsOfContours += toString16(endPoint - 1);
-          }
-          flags += '\x01';
-          var moveX = record.moveX / resolution;
-          var moveY = -record.moveY / resolution;
-          var dx = moveX - x;
-          var dy = moveY - y;
-          xCoordinates += toString16(dx);
-          yCoordinates += toString16(dy);
-          x = moveX;
-          y = moveY;
-          if (endPoint > maxPoints)
-            maxPoints = endPoint;
+    var myFlags = '',
+        myEndpts = '',
+        endPoint = 0,
+        segmentIndex = -1;
 
-/*
-          if (x < xMin)
-            xMin = x;
-          if (x > xMax)
-            xMax = x;
-          if (y < yMin)
-            yMin = y;
-          if (y > yMax)
-            yMax = y;
-*/            
-          ++endPoint;
-        }
-      }
+    var data=[],commands=[];
+
+    for(j=0;j<segments.length;j++){
+      data = data.concat(segments[j].data);
+      commands = commands.concat(segments[j].commands);
     }
-    endPtsOfContours += toString16((endPoint || 1) - 1);
+
+    x=0;y=0;
+    var nx=0,ny=0,
+        myXCoordinates='',
+        myYCoordinates='',
+        dataIndex = 0,
+        endPoint = 0,
+        numberOfContours = 1,
+        myEndpts = '';
+    for(j=0;j<commands.length;j++) {
+      var command = commands[j];
+      if( command === 1 ) {
+        if (endPoint) {
+          ++numberOfContours;
+          myEndpts += toString16(endPoint - 1);
+        }
+        nx = data[dataIndex++] + xTranslate;
+        ny = -data[dataIndex++] + yTranslate;
+        var dx = nx - x;
+        var dy = ny - y;
+        myFlags += '\x01';
+        myXCoordinates += toString16(dx);
+        myYCoordinates += toString16(dy);
+        x = nx;
+        y = ny;
+      } else if( command === 2 ){
+        nx = data[dataIndex++] + xTranslate;
+        ny = -data[dataIndex++] + yTranslate;
+        var dx = nx - x;
+        var dy = ny - y;
+        myFlags += '\x01';
+        myXCoordinates += toString16(dx);
+        myYCoordinates += toString16(dy);
+        x = nx;
+        y = ny;
+      } else if( command === 3 ){
+          nx = data[dataIndex++] + xTranslate;
+          ny = -data[dataIndex++] + yTranslate;
+          var cx = nx - x;
+          var cy = ny - y;
+          myFlags += '\x00';
+          myXCoordinates += toString16(cx);
+          myYCoordinates += toString16(cy);
+          x = nx;
+          y = ny;
+          endPoint++;
+
+          nx = data[dataIndex++] + xTranslate;
+          ny = -data[dataIndex++] + yTranslate;
+          var cx = nx - x;
+          var cy = ny - y;
+          myFlags += '\x01';
+          myXCoordinates += toString16(cx);
+          myYCoordinates += toString16(cy);
+          x = nx;
+          y = ny;     
+      }
+      endPoint++;
+      if (endPoint > maxPoints)
+        maxPoints = endPoint;
+
+      if( xMin > x ) xMin = x;
+      if( yMin > y ) yMin = y;
+      if( xMax < x ) xMax = x;
+      if( yMax < y ) yMax = y;
+
+    }
+    myEndpts += toString16((endPoint || 1) - 1);
+
+    endPtsOfContours = myEndpts;
+    xCoordinates = myXCoordinates;
+    yCoordinates = myYCoordinates;
+    flags = myFlags;
+
+    yMax += yTranslate;
+
     if (!j) {
       xMin = xMax = yMin = yMax = 0;
       flags += '\x31';
@@ -524,6 +680,8 @@ function defineFont(tag, dictionary) {
     id: tag.id,
     name: fontName,
     uniqueName: psName + uniqueId,
+    xTranslate: xTranslate,
+    yTranslate: yTranslate,
     codes: originalCode,
     metrics: metrics,
     bold: tag.bold === 1,

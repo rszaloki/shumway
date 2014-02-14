@@ -23,7 +23,7 @@ function defineLabel(tag, dictionary) {
   var bbox = tag.bbox;
   var cmds = [
     'c.save()',
-    'c.transform(' + [m.a, m.b, m.c, m.d, m.tx/20, m.ty/20].join(',') + ')'
+    'c.transform(' + [m.a, m.b, m.c, -m.d, m.tx/20, m.ty/20].join(',') + ')'
   ];
   var dependencies = [];
   var x = 0;
@@ -59,7 +59,9 @@ function defineLabel(tag, dictionary) {
     if (record.hasMoveX)
       x = record.moveX /20;
     if (record.hasMoveY)
-      y = record.moveY /20;
+      y = -record.moveY /20;
+
+
     var entries = record.entries;
     var j = 0;
     var entry;
