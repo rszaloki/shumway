@@ -150,42 +150,9 @@ function defineFont(tag, dictionary) {
 
   var resolution = tag.resolution || 20;
   var ascent = Math.ceil(tag.ascent / resolution) || 1024;
-  var descent = -Math.ceil(tag.descent / resolution) | 0;
-  var leading = (tag.leading / resolution) | 0;
-  tables['OS/2'] =
-    '\x00\x01' + // version
-    '\x00\x00' + // xAvgCharWidth
-    toString16(tag.bold ? 700 : 400) + // usWeightClass
-    '\x00\x05' + // usWidthClass
-    '\x00\x00' + // fstype
-    '\x00\x00' + // ySubscriptXSize
-    '\x00\x00' + // ySubscriptYSize
-    '\x00\x00' + // ySubscriptXOffset
-    '\x00\x00' + // ySubscriptYOffset
-    '\x00\x00' + // ySuperScriptXSize
-    '\x00\x00' + // ySuperScriptYSize
-    '\x00\x00' + // ySuperScriptXOffset
-    '\x00\x00' + // ySuperScriptYOffset
-    '\x00\x00' + // yStrikeoutSize
-    '\x00\x00' + // yStrikeoutPosition
-    '\x00\x00' + // sFamilyClass
-    '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + // panose
-    '\x00\x00\x00\x00' + // ulUnicodeRange1
-    '\x00\x00\x00\x00' + // ulUnicodeRange2
-    '\x00\x00\x00\x00' + // ulUnicodeRange3
-    '\x00\x00\x00\x00' + // ulUnicodeRange4
-    'ALF ' + // achVendID
-    toString16((tag.italic ? 0x01 : 0) | (tag.bold ? 0x20: 0)) + // fsSelection
-    toString16(codes[0]) + // usFirstCharIndex
-    toString16(codes[codes.length - 1]) + // usLastCharIndex
-    toString16(ascent) + // sTypoAscender
-    toString16(descent) + // sTypoDescender
-    toString16(leading) + // sTypoLineGap
-    toString16(ascent) + // usWinAscent
-    toString16(-descent) + // usWinDescent
-    '\x00\x00\x00\x00' + // ulCodePageRange1
-    '\x00\x00\x00\x00' // ulCodePageRange2
-  ;
+  var descent = -Math.ceil(tag.descent / resolution) || 0;
+  var leading = (tag.leading / resolution) || 0;
+  tables['OS/2'] ='';
 
   var startCount = '';
   var endCount = '';
@@ -343,8 +310,8 @@ function defineFont(tag, dictionary) {
     rawData[code] = segments;
   }
   var xTranslate = 0, yTranslate = 0;
-
-  if(!isFont3) {
+/*
+  if(false && !isFont3) {
     for(i = 0; i<codes.length; i++) {
       var code = codes[i];
       segments = rawData[code];
@@ -355,7 +322,7 @@ function defineFont(tag, dictionary) {
 
     yTranslate = Math.max(yTranslate,0);
   }
-
+*/
   i=0;
   while ( code = codes[i++] ) {
     var glyph = glyphs[glyphIndex[code]];
@@ -499,6 +466,48 @@ function defineFont(tag, dictionary) {
   }
   loca += toString16(offset / 2);
   tables['glyf'] = glyf;
+
+  if(!isFont3) {
+    var minYmin = Math.min.apply(null,yMins);
+    if(minYmin < 0) {
+      descent = descent || minYmin;
+    }  
+  }
+
+  tables['OS/2'] =
+    '\x00\x01' + // version
+    '\x00\x00' + // xAvgCharWidth
+    toString16(tag.bold ? 700 : 400) + // usWeightClass
+    '\x00\x05' + // usWidthClass
+    '\x00\x00' + // fstype
+    '\x00\x00' + // ySubscriptXSize
+    '\x00\x00' + // ySubscriptYSize
+    '\x00\x00' + // ySubscriptXOffset
+    '\x00\x00' + // ySubscriptYOffset
+    '\x00\x00' + // ySuperScriptXSize
+    '\x00\x00' + // ySuperScriptYSize
+    '\x00\x00' + // ySuperScriptXOffset
+    '\x00\x00' + // ySuperScriptYOffset
+    '\x00\x00' + // yStrikeoutSize
+    '\x00\x00' + // yStrikeoutPosition
+    '\x00\x00' + // sFamilyClass
+    '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' + // panose
+    '\x00\x00\x00\x00' + // ulUnicodeRange1
+    '\x00\x00\x00\x00' + // ulUnicodeRange2
+    '\x00\x00\x00\x00' + // ulUnicodeRange3
+    '\x00\x00\x00\x00' + // ulUnicodeRange4
+    'ALF ' + // achVendID
+    toString16((tag.italic ? 0x01 : 0) | (tag.bold ? 0x20: 0)) + // fsSelection
+    toString16(codes[0]) + // usFirstCharIndex
+    toString16(codes[codes.length - 1]) + // usLastCharIndex
+    toString16(ascent) + // sTypoAscender
+    toString16(descent) + // sTypoDescender
+    toString16(leading) + // sTypoLineGap
+    toString16(ascent) + // usWinAscent
+    toString16(-descent) + // usWinDescent
+    '\x00\x00\x00\x00' + // ulCodePageRange1
+    '\x00\x00\x00\x00' // ulCodePageRange2
+  ;
 
   tables['head'] =
     '\x00\x01\x00\x00' + // version
