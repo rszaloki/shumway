@@ -23,7 +23,7 @@ function defineLabel(tag, dictionary) {
   var bbox = tag.bbox;
   var cmds = [
     'c.save()',
-    'c.transform(' + [m.a, m.b, m.c, -m.d, m.tx/20, m.ty/20].join(',') + ')'
+    'c.transform(' + [m.a, m.b, -m.c, -m.d, m.tx/20, m.ty/20].join(',') + ')'
   ];
   var dependencies = [];
   var x = 0;
