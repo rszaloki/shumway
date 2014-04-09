@@ -17,13 +17,13 @@
  */
 /*global rgbaObjToStr, fromCharCode */
 
-function defineLabel(tag, dictionary) {
+function defineLabel(tag, dictionary, flip) {
   var records = tag.records;
   var m = tag.matrix;
   var bbox = tag.bbox;
   var cmds = [
     'c.save()',
-    'c.transform(' + [m.a, m.b, -m.c, -m.d, m.tx/20, m.ty/20].join(',') + ')'
+    'c.transform(' + [m.a, m.b, -m.c, m.d*flip, m.tx/20, m.ty/20].join(',') + ')'
   ];
   var dependencies = [];
   var x = 0;
@@ -57,9 +57,9 @@ function defineLabel(tag, dictionary) {
     }
 
     if (record.hasMoveX)
-      x = record.moveX /20;
+      x = -flip*record.moveX /20;
     if (record.hasMoveY)
-      y = -record.moveY /20;
+      y = flip*record.moveY /20;
 
 
     var entries = record.entries;
