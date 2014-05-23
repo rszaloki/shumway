@@ -50,6 +50,7 @@ function defineFont(tag, dictionary) {
   var originalCode;
   var generateAdvancement = tag['advance'] === undefined;
   var correction = 0;
+  var isFont3 = (tag.code === 75);
 
   function isClockwise(nodes) {
       var E1x = nodes[0]-nodes[2]; // P1x-P2x
@@ -312,9 +313,11 @@ function defineFont(tag, dictionary) {
       segments[segmentIndex].clockwise = isClockwise(segments[segmentIndex].nodes);
     }
 
-    segments.sort(function(a,b){
-      return (b.xMax - b.xMin) * (b.yMax - b.yMin) - (a.xMax - a.xMin) * (a.yMax - a.yMin);
-    });
+    if(!isFont3) {
+      segments.sort(function(a,b){
+        return (b.xMax - b.xMin) * (b.yMax - b.yMin) - (a.xMax - a.xMin) * (a.yMax - a.yMin);
+      });
+    }
 /*
     if(segments.length) {
       var currentsegment = segments[0];
@@ -341,17 +344,17 @@ function defineFont(tag, dictionary) {
   }
   var xTranslate = 0, yTranslate = 0;
 
-
-  for(i = 0; i<codes.length; i++) {
-    var code = codes[i];
-    segments = rawData[code];
-    for(j=0; j<segments.length; j++ ) {
-      if(yTranslate < segments[j].yMax ) yTranslate = segments[j].yMax;
+  if(!isFont3) {
+    for(i = 0; i<codes.length; i++) {
+      var code = codes[i];
+      segments = rawData[code];
+      for(j=0; j<segments.length; j++ ) {
+        if(yTranslate < segments[j].yMax ) yTranslate = segments[j].yMax;
+      }
     }
+
+    yTranslate = Math.max(yTranslate,0);
   }
-
-  yTranslate = Math.max(yTranslate,0);
-
 
   i=0;
   while ( code = codes[i++] ) {
@@ -378,6 +381,8 @@ function defineFont(tag, dictionary) {
 
     var data=[],commands=[];
 
+    var flip = (isFont3) ? 1 : -1;
+
     for(j=0;j<segments.length;j++){
       data = data.concat(segments[j].data);
       commands = commands.concat(segments[j].commands);
@@ -399,7 +404,7 @@ function defineFont(tag, dictionary) {
           myEndpts += toString16(endPoint - 1);
         }
         nx = data[dataIndex++] + xTranslate;
-        ny = -data[dataIndex++] + yTranslate;
+        ny = flip*data[dataIndex++] + yTranslate;
         var dx = nx - x;
         var dy = ny - y;
         myFlags += '\x01';
@@ -409,7 +414,7 @@ function defineFont(tag, dictionary) {
         y = ny;
       } else if( command === 2 ){
         nx = data[dataIndex++] + xTranslate;
-        ny = -data[dataIndex++] + yTranslate;
+        ny = flip*data[dataIndex++] + yTranslate;
         var dx = nx - x;
         var dy = ny - y;
         myFlags += '\x01';
@@ -419,7 +424,7 @@ function defineFont(tag, dictionary) {
         y = ny;
       } else if( command === 3 ){
           nx = data[dataIndex++] + xTranslate;
-          ny = -data[dataIndex++] + yTranslate;
+          ny = flip*data[dataIndex++] + yTranslate;
           var cx = nx - x;
           var cy = ny - y;
           myFlags += '\x00';
@@ -430,7 +435,7 @@ function defineFont(tag, dictionary) {
           endPoint++;
 
           nx = data[dataIndex++] + xTranslate;
-          ny = -data[dataIndex++] + yTranslate;
+          ny = flip*data[dataIndex++] + yTranslate;
           var cx = nx - x;
           var cy = ny - y;
           myFlags += '\x01';
