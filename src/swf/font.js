@@ -68,9 +68,6 @@ function defineFont(tag, dictionary) {
       codes.push(code);
 
 
-      if( tag.glyphs[i].records.length < 3 ) {
-        tag.glyphs[i] = dummyGlyph;
-      }
 
     }
   }
