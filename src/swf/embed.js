@@ -28,6 +28,8 @@ SWF.embed = function(file, doc, container, options) {
   var pixelRatio = 1;
   var forceHidpiSetting = forceHidpi.value;
 
+  var renderOffStage = (options.objectParams && options.objectParams.renderOffStage === true);
+
   stage._loader = loader;
   loaderInfo._parameters = options.movieParams;
   loaderInfo._url = options.url || (typeof file === 'string' ? file : null);
@@ -35,6 +37,40 @@ SWF.embed = function(file, doc, container, options) {
 
   loader._parent = stage;
   loader._stage = stage;
+
+  function onlyOneItem(stage, renderOffStage) {
+    if(stage._children[0]._children.length === 1) {
+      var child = stage._children[0]._children[0];
+      var cb = child._getContentBounds();
+      var ct = child._currentTransform;
+      if(renderOffStage || (cb.xMax - cb.xMin <= stage._stageWidth &&
+         cb.yMax - cb.yMin <= stage._stageHeight &&
+         cb.xMax > 0 &&
+         cb.yMax > 0 &&
+         cb.xMin < stage._stageWidth &&
+         cb.yMin < stage._stageHeight) ) {
+
+
+        if(renderOffStage && ((cb.xMax - cb.xMin > stage._stageWidth) ||
+                              (cb.yMax - cb.yMin > stage._stageHeight))) {
+          var scale = Math.min(stage._stageWidth / (cb.xMax - cb.xMin),
+                               stage._stageHeight / (cb.yMax - cb.yMin));
+
+          child._currentTransform.tx -= Math.min(cb.xMin+(ct.tx/ct.a),0);
+          child._currentTransform.ty -= Math.min(cb.yMin+(ct.ty/ct.d),0);
+          child._currentTransform.a = scale;
+          child._currentTransform.d = scale;
+          return;
+        }
+
+        child._currentTransform.tx -= Math.min(cb.xMin+(ct.tx/ct.a),0);
+        child._currentTransform.ty -= Math.min(cb.yMin+(ct.ty/ct.d),0);
+
+        child._currentTransform.tx -= Math.max(cb.xMax+(ct.tx/ct.a)-stage._stageWidth,0);
+        child._currentTransform.ty -= Math.max(cb.yMax+(ct.ty/ct.d)-stage._stageHeight,0);
+      }
+    }
+  }
 
   function setCanvasSize(width, height) {
     if (pixelRatio === 1.0) {
@@ -187,6 +223,8 @@ SWF.embed = function(file, doc, container, options) {
 
     container.appendChild(canvas);
     stage._domContainer = container;
+
+    onlyOneItem(stage, renderOffStage);
 
     if (options.onStageInitialized) {
       options.onStageInitialized(stage);
