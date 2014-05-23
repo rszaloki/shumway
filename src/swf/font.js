@@ -52,42 +52,6 @@ function defineFont(tag, dictionary) {
   var correction = 0;
   var isFont3 = (tag.code === 75);
 
-  function isClockwise(nodes) {
-      var E1x = nodes[0]-nodes[2]; // P1x-P2x
-      var E1y = nodes[1]-nodes[3]; // P1y-P2y 
-      var E2x = nodes[4]-nodes[2]; // P3x-P2x 
-      var E2y = nodes[5]-nodes[3]; // P3y-P2y
-      return ((E1x * E2y - E1y * E2x) >= 0);    
-  }
-
-  function reverseSegment(segment) {
-    var newCommands = [],
-        newData = [],
-        data = segment.data,
-        commands = segment.commands,
-        dataIndex = data.length-1,
-        x,y,
-        currentCommand;
-
-    newCommands.push(1);
-
-    while( dataIndex>0 ) {
-      x = data[dataIndex-1];
-      y = data[dataIndex];
-      dataIndex -= 2;
-      newData.push(x,y);
-    }
-
-    for (var i = commands.length - 1; i >= 1; i--) {
-        newCommands.push(commands[i]);
-    };  
-
-    segment.commands = newCommands;
-    segment.data = newData;
-    segment.clockwise = !segment.clockwise;
-
-  }
-
 
   if(generateAdvancement) tag.advance = [];
 
@@ -118,7 +82,7 @@ function defineFont(tag, dictionary) {
   if (tag.codes) {
     for (var i = 0, code; i<codes.length; i++) {
       code=codes[i];
-      glyphIndex[code] = i;      
+      glyphIndex[code] = i;
     }
     codes.sort(function(a, b) {
       return a - b;
@@ -252,9 +216,6 @@ function defineFont(tag, dictionary) {
         if (record.eos)
           break;
         if (record.move) {
-          if(segmentIndex >= 0 ) {
-            segments[segmentIndex].clockwise = isClockwise(segments[segmentIndex].nodes);
-          }
           segmentIndex++;
           segments[segmentIndex] = { data:[], commands:[], nodes:[], xMin:0, xMax:0, yMin:0, yMax:0 };
           segments[segmentIndex].commands.push(1);
@@ -273,11 +234,8 @@ function defineFont(tag, dictionary) {
         if(segments[segmentIndex].xMin > x) segments[segmentIndex].xMin = x;
         if(segments[segmentIndex].yMin > y) segments[segmentIndex].yMin = y;
         if(segments[segmentIndex].xMax < x) segments[segmentIndex].xMax = x;
-        if(segments[segmentIndex].yMax < y) segments[segmentIndex].yMax = y;        
+        if(segments[segmentIndex].yMax < y) segments[segmentIndex].yMax = y;
       }
-    }
-    if(segmentIndex >= 0 ) {
-      segments[segmentIndex].clockwise = isClockwise(segments[segmentIndex].nodes);
     }
 
     if(!isFont3) {
@@ -285,44 +243,11 @@ function defineFont(tag, dictionary) {
         return (b.xMax - b.xMin) * (b.yMax - b.yMin) - (a.xMax - a.xMin) * (a.yMax - a.yMin);
       });
     }
-/*
-    if(segments.length) {
-      var currentsegment = segments[0];
-      if( currentsegment.clockwise === false ) {
-          reverseSegment(currentsegment);
-      }
-      for(j=1; j<segments.length; j++ ) {
-          var nextsegment = segments[j];
-          if(nextsegment.commands.length>2) {
-              if( currentsegment.xMin <= nextsegment.xMin &&
-                  currentsegment.yMin <= nextsegment.yMin && 
-                  currentsegment.xMax >= nextsegment.xMax &&
-                  currentsegment.yMax >= nextsegment.yMax && 
-                  currentsegment.clockwise === nextsegment.clockwise ) {
 
-                  reverseSegment(nextsegment);
-              }
-          }
-          currentsegment = nextsegment;
-      }      
-    }
-*/
     rawData[code] = segments;
   }
   var xTranslate = 0, yTranslate = 0;
-/*
-  if(false && !isFont3) {
-    for(i = 0; i<codes.length; i++) {
-      var code = codes[i];
-      segments = rawData[code];
-      for(j=0; j<segments.length; j++ ) {
-        if(yTranslate < segments[j].yMax ) yTranslate = segments[j].yMax;
-      }
-    }
 
-    yTranslate = Math.max(yTranslate,0);
-  }
-*/
   i=0;
   while ( code = codes[i++] ) {
     var glyph = glyphs[glyphIndex[code]];
@@ -409,7 +334,7 @@ function defineFont(tag, dictionary) {
           myXCoordinates += toString16(cx);
           myYCoordinates += toString16(cy);
           x = nx;
-          y = ny;     
+          y = ny;
       }
       endPoint++;
       if (endPoint > maxPoints)
@@ -471,7 +396,7 @@ function defineFont(tag, dictionary) {
     var minYmin = Math.min.apply(null,yMins);
     if(minYmin < 0) {
       descent = descent || minYmin;
-    }  
+    }
   }
 
   tables['OS/2'] =
@@ -693,12 +618,10 @@ function defineFont(tag, dictionary) {
     id: tag.id,
     name: fontName,
     uniqueName: psName + uniqueId,
-    xTranslate: xTranslate,
-    yTranslate: yTranslate,
     codes: originalCode,
     metrics: metrics,
     bold: tag.bold === 1,
     italic: tag.italic === 1,
-    data: otf 
+    data: otf
   };
 }
