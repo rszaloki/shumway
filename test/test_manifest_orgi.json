@@ -1,0 +1,192 @@
+[
+    {  "id": "timeline",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/timeline/events/timeline_events_fp10.swf",
+        "swfs/timeline/events/timeline_events_fp9.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "timeline_as2",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/timeline/timeline_as2_1.swf",
+        "swfs/avm1timeline1.swf",
+        "swfs/avm1timeline2.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "timeline_name",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/timeline/timeline_name_0.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "timeline_scene",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/timeline/scene/EncodedU32.swf",
+        "swfs/timeline/scene/Scene_1_MainTimeline.swf",
+        "swfs/timeline/scene/Scene_2_MovieClipTimeline.swf",
+        "swfs/timeline/scene/Scene_3_GotoAndStop_LabelScene.swf",
+        "swfs/timeline/scene/Scene_4_GotoAndStop_FrameScene.swf",
+        "swfs/timeline/scene/Scene_5_GotoAndPlay_LabelScene.swf",
+        "swfs/timeline/scene/Scene_6_GotoAndPlay_FrameScene.swf",
+        "swfs/timeline/scene/Scene_7_NextPrevScene.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "flash_net_URLRequest trace",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/flash_net_URLRequest.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "avm1 loadVariables trace",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/avm1/loadvariables/loadvariables.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "avm1 setInterval trace",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/avm1/setinterval/setinterval.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "avm1 setTimeout trace",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/avm1/settimeout/settimeout.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "flash_utils_Timer",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/flash_utils_Timer.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "button",
+       "stas": "swfs/button.stas",
+       "filenames": [
+         "swfs/button1.swf",
+         "swfs/button3.swf"
+       ],
+       "type": "stas"
+    },
+    {  "id": "ZeroClipboardTest",
+       "stas": "swfs/ZeroClipboardTest.stas",
+       "filenames": [
+         "swfs/ZeroClipboardTest.swf"
+       ],
+       "type": "stas"
+    },
+    {  "id": "flash_net_SharedObject trace",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/flash_net_SharedObject.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "button-ref",
+       "frames": [1],
+       "swf": "swfs/button1.swf",
+       "type": "eq"
+    },
+    {  "id": "tiger-ref",
+       "frames": [1],
+       "swf": "/examples/as3_tiger/tiger.swf",
+       "type": "eq"
+    },
+    {  "id": "image-loading",
+      "frames": [60],
+      "swf": "/examples/image-loading/image-loading.swf",
+      "type": "eq"
+    },
+    {  "id": "bitmap-ref",
+      "frames": [20],
+      "swf": "swfs/bitmapbuttons.swf",
+      "type": "eq"
+    },
+    {  "id": "flex-bitmap-ref",
+      "frames": [1],
+      "swf": "/examples/bitmap/flex-bitmap/flexbitmap.swf",
+      "type": "eq"
+    },
+    {  "id": "non-smoothed-bitmap-ref",
+      "frames": [1],
+      "swf": "/examples/bitmap/non-smoothed-bitmap/nonsmoothedbitmap.swf",
+      "type": "eq"
+    },
+    {  "id": "pac-ref",
+       "frames": [1, 5, 10],
+       "swf": "/examples/pac/pac.swf",
+       "type": "eq"
+    },
+    {  "id": "race-ref",
+       "frames": [20, 30],
+       "swf": "/examples/racing/race.swf",
+       "type": "eq"
+    },
+    {  "id": "gradient-ref",
+       "frames": [1],
+       "swf": "swfs/gradient.swf",
+       "type": "eq"
+    },
+    {  "id": "box2d-ref",
+       "frames": [50, 100],
+       "swf": "/examples/Box2DFlashAS3/demo.swf",
+       "type": "eq"
+    },
+    {  "id": "flash_geom_ColorTransform",
+       "frames": [1],
+       "swf": "swfs/flash_geom_ColorTransform.swf",
+       "type": "eq"
+    },
+    {  "id": "MaskTest",
+       "frames": [1],
+       "swf": "swfs/MaskTest.swf",
+       "type": "eq"
+    },
+    {  "id": "graphics-fills-ref",
+      "frames": [1],
+      "swf": "/examples/graphics/various-shapes.swf",
+      "type": "eq"
+    },
+    {  "id": "graphics-strokes-ref",
+      "frames": [1],
+      "swf": "/examples/graphics/various-strokes.swf",
+      "type": "eq"
+    },
+    {  "id": "textfield-align-ref",
+      "frames": [1],
+      "swf": "/examples/textfield/align.swf",
+      "type": "eq"
+    },
+    {  "id": "as3-loader",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/as3-loader/LoaderTest.swf",
+        "swfs/as3-loader/LoaderLoadBytesTest.swf"
+      ],
+      "type": "stas"
+    },
+    {  "id": "defineFont2-test",
+       "frames": [60],
+       "swf": "swfs/food.swf",
+       "type": "eq"
+    },
+    {  "id": "hit-test",
+      "stas": "swfs/trace.stas",
+      "filenames": [
+        "swfs/hitTestStyleChange.swf"
+      ],
+      "type": "stas"
+    }
+]
